@@ -1,41 +1,35 @@
 #!/usr/bin/python3
-# File: 100-hbnb.py
-# Authors: Yoshua Lopez - Ma Paz Quirola - Laura Socarras 
-
-""""
-Script starts Flask web app
-    listen on 0.0.0.0, port 5000
-    routes: /:
-            /hbnb_filters:        Display a HTML page like 8-index.html
 """
-
+Starts a Flask web application.
+Listens on 0.0.0.0  on port 5000.
+Routes:
+  *  /hbnb: Display the HTML page for hbnb home page.
+"""
+from flask import Flask
+from flask import render_template
 from models import storage
-from models.state import State
-from models.amenity import Amenity
-from models.place import Place
-from flask import Flask, render_template
+
 
 app = Flask(__name__)
-app.url_map.strict_slashes = False
+
+
+@app.route("/hbnb", strict_slashes=False)
+def hbnb():
+    """Display the HTML page for hbnb home page."""
+    amenities = storage.all("Amenity")
+    places = storage.all("Place")
+    states = storage.all("State")
+    return render_template("100-hbnb.html",
+                           amenities=amenities,
+                           places=places,
+                           states=states)
 
 
 @app.teardown_appcontext
-def teardown_db(self):
-    """After each request remove current SQLAlchemy session"""
+def teardown(excpt=None):
+    """Remove the current SQLAlchemy Session."""
     storage.close()
 
 
-@app.route('/hbnb_filters')
-def states_and_cities():
-    """Display html page w/ working city/state filters & amenities/proper
-       Runs with web static css files
-    """
-    states = storage.all(State).values()
-    amenities = storage.all(Amenity).values()
-    places = storage.all(Place).values()
-    dict = {"states": states, "amenities": amenities, "places": places}
-    return(render_template("100-hbnb.html", **dict))
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0")
